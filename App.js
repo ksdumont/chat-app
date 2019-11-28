@@ -4,14 +4,18 @@ import './style.css';
 // import Chatkit from '@pusher/chatkit-client';
 import {tokenUrl, instanceLocator} from './config';
 import { ChatManager, TokenProvider } from '@pusher/chatkit-client';
-// import SendMessageForm from './components/SendMessageForm';
+import SendMessageForm from './components/SendMessageForm';
 // import RoomList from './components/RoomList';
 // import NewRoomForm from './components/NewRoomForm';
 
 
 class App extends Component {
-  state = {  }
-
+  constructor(props) {
+    super(props)
+    this.state = {
+      messages: [],
+      }
+  }
   componentDidMount() {
     const chatManager = new ChatManager({
         instanceLocator,
@@ -26,7 +30,9 @@ class App extends Component {
         roomId: '769e25cd-87d6-4e66-9eef-0122b9ce151f',
         hooks: {
           onMessage: message => {
-            console.log('message.text: ', message.text);
+            this.setState({
+              messages: [...this.state.messages, message]
+            })
           }
         }
       })
@@ -37,9 +43,9 @@ class App extends Component {
     return (
       <div className='app'>
         {/* <RoomList /> */}
-        <MessageList />
-        {/* <SendMessageForm />
-        <NewRoomForm />       */}
+        <MessageList messages={this.state.messages}/>
+        <SendMessageForm />
+        {/* <NewRoomForm />        */}
       </div>
       );
   }
