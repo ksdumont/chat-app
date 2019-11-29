@@ -5,7 +5,7 @@ import './style.css';
 import {tokenUrl, instanceLocator} from './config';
 import { ChatManager, TokenProvider } from '@pusher/chatkit-client';
 import SendMessageForm from './components/SendMessageForm';
-// import RoomList from './components/RoomList';
+import RoomList from './components/RoomList';
 // import NewRoomForm from './components/NewRoomForm';
 
 
@@ -14,7 +14,10 @@ class App extends Component {
     super(props)
     this.state = {
       messages: [],
+      joinableRooms: [],
+      joinedRooms: []
       }
+      this.sendMessage = this.sendMessage.bind(this)
   }
   componentDidMount() {
     const chatManager = new ChatManager({
@@ -26,7 +29,17 @@ class App extends Component {
     })
     chatManager.connect()
     .then(currentUser => {
-      currentUser.subscribeToRoom({
+      this.currentUser = currentUser;
+      this.currentUser.getJoinableRooms()
+      .then(joinableRooms => {
+        this.setState({
+          joinableRooms,
+          joinedRooms: this.currentUser.rooms,
+        })
+      })
+      .catch(err => console.log('error on joinableRooms: ', err))
+      
+      this.currentUser.subscribeToRoom({
         roomId: '769e25cd-87d6-4e66-9eef-0122b9ce151f',
         hooks: {
           onMessage: message => {
@@ -37,14 +50,22 @@ class App extends Component {
         }
       })
     })
+    .catch(err => console.log('error on connecting: ', err))
   }
+    
+  sendMessage(text) {
+      this.currentUser.sendMessage({
+        text,
+        roomId: '769e25cd-87d6-4e66-9eef-0122b9ce151f',
 
+      })
+    }
   render() { 
     return (
       <div className='app'>
-        {/* <RoomList /> */}
+        <RoomList rooms={[...this.state.joinableRooms, ...this.state.joinedRooms]}/>
         <MessageList messages={this.state.messages}/>
-        <SendMessageForm />
+        <SendMessageForm sendMessage={this.sendMessage} />
         {/* <NewRoomForm />        */}
       </div>
       );
